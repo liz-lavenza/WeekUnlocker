@@ -18,6 +18,7 @@ namespace WeekUnlocker.Harmony
         //  IL_0169: call instance void CalendarScript::ResetSaveFile()
         /// <summary>
         /// Removes code to reset the week if 20XX mode gets past week two.
+        /// Also adds code to genericise arbitrary/modded date labels.
         /// </summary>
         [HarmonyTranspiler]
         [HarmonyPatch("Start")]
@@ -33,14 +34,10 @@ namespace WeekUnlocker.Harmony
                     new CodeMatch(x => x.Calls(AccessTools.Method(typeof(Debug), nameof(Debug.Log), new System.Type[] { typeof(object) }))),
                     new CodeMatch(OpCodes.Ldarg_0),
                     new CodeMatch(x => x.Calls(AccessTools.Method(typeof(CalendarScript), nameof(CalendarScript.ResetSaveFile))))
-                );
-            if (matcher.IsInvalid)
-            {
-                HarmonyFileLog.Writer.WriteLine("StartTranspiler failed to find first injection site!");
-                return instructions;
-            }
-            matcher.RemoveInstructions(8)
-                .AddLabels(
+                )
+                .ThrowIfInvalid("StartTranspiler failed to find first injection site!")
+                .RemoveInstructions(8);
+                matcher.AddLabels(
                     matcher.NamedMatch("JumpTarget").ExtractLabels()
                 );
         //  IL_0353: call int32 DateGlobals::get_Week()
@@ -113,11 +110,14 @@ namespace WeekUnlocker.Harmony
                         currentYear++;
                     }
                 }
-                calendarScript.MonthLabel.text = monthNames[monthIndex];
-                calendarScript.YearLabel.text = $"{currentYear}";
-                Debug.Log($"Week {DateGlobals.Week} day {day} is day {monthDay} out of {monthLengths[monthIndex]} in {monthNames[monthIndex]}, {TotalDay} days have passed overall.");
+                Debug.Log($"Week {DateGlobals.Week} day {day} is day {monthDay} out of {monthLengths[monthIndex]} in {monthNames[monthIndex]} of {currentYear}, {TotalDay} days have passed overall.");
                 // DayNumber is 1-indexed.
                 calendarScript.DayNumber[day + 1].text = $"{monthDay}";
+                if (DateGlobals.Weekday == (System.DayOfWeek)day)
+                {
+                    calendarScript.MonthLabel.text = monthNames[monthIndex];
+                    calendarScript.YearLabel.text = $"{currentYear}";
+                }
             }
         }
 
@@ -140,16 +140,19 @@ namespace WeekUnlocker.Harmony
                     new CodeMatch(x => x.LoadsField(AccessTools.Field(typeof(CalendarScript), nameof(CalendarScript.SkipButton)))),
                     new CodeMatch(x => x.LoadsConstant(0)),
                     new CodeMatch(x => x.Calls(AccessTools.Method(typeof(GameObject), nameof(GameObject.SetActive))))
-                );
-            if (matcher.IsInvalid)
-            {
-                HarmonyFileLog.Writer.WriteLine("ChangeDayColor failed to find injection site!");
-                return instructions;
-            }
+                )
+                .ThrowIfInvalid("ChangeDayColor failed to find injection site!");
             return matcher
                 .RemoveInstructions(10)
                 .AddLabels(matcher.NamedMatch("JumpTarget").ExtractLabels())
                 .InstructionEnumeration();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(CalendarScript.ChangeDayColor))]
+        static void ChangeDayColorPrefix(CalendarScript __instance)
+        {
+            if (!__instance.Eighties) CreateDayNumbers(__instance);
         }
     }
 }

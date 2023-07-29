@@ -11,7 +11,7 @@ using MelonLoader;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("WeekUnlocker")]
-[assembly: AssemblyCopyright("Copyright ©  2023")]
+[assembly: AssemblyCopyright("Copyright © Liz Lavenza 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -38,3 +38,4 @@ using MelonLoader;
 
 [assembly: MelonInfo(typeof(WeekUnlocker.WeekUnlockerMod), "Week Unlocker", "1.0", "Elizabeth Lavenza")]
 [assembly: MelonGame("YandereDev", "YandereSimulator")]
+[assembly: MelonPriority(-1)] // Library mod, try to load earlier than default-config mods.
