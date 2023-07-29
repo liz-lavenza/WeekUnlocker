@@ -13,5 +13,7 @@ namespace WeekUnlocker
         public static int StartingMonth = 3;
         /// What year is the game set in?
         public static int StartingYear = 2025;
+        /// How many weeks do we have?
+        public static int WeekLimit = 10;
     }
 }

@@ -15,7 +15,7 @@ namespace WeekUnlocker.Harmony
         [HarmonyPatch("Awake")]
         static void AwakePrefix(StudentManagerScript __instance)
         {
-            __instance.WeekLimit = 10;
+            __instance.WeekLimit = WeekUnlockerMod.WeekLimit;
         }
         //	IL_0024: ldc.i4.s 11
         //  IL_0026: ble.s IL_002f
